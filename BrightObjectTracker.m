@@ -1,40 +1,52 @@
-function [objPt, status] = BrightObjectTracker(loadfun,findFeaturesFun)
-% Press and release various key combinations in the figure.
-% Values returned by the event structure are displayed
-% in the command window.
+function [objPt, status] = BrightObjectTracker(loadfun,findFeaturesFun,minFrame,maxFrame)
+% Load in a frame at a time and allows the user to navigate between frames.  
 %
-% At each keypress it runs loadfun, which is a function that loads in the
-% current frame. It must accept an integer for the frame number. The other
-% parameters are set in a function "getLoadFrameHandle".
-% 
-%
-%
+% Andrew Leifer
+% leifer@fas.harvard.edu
+% 13 March 2012
 
-%% Define Variables
-frame=1; %Current frame
+% Define State Variables
+frame=minFrame; %Current frame
 I=[]; %Current Image
 status=''; %Are we out of range?
 currPts=[]; %current Extracted features
 dispFeat=true; %display features?
+record=true; %record features
+currFeat=[]; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
+
+    %A note about current features... the following table determines the
+    %value of current feature:
+    % -1: Occluded
+    % 0: Manually Specificed Value
+    % 1: Brightest Feature
+    % 2: 2nd Brightest
+    % 3: 3rd Brightest
+    % 4: 4th Brighest
+    % .
+    % .
+    % .
+
+mutEx=[]; %array of mutually exclusive toggle button handles (one for occluded, one for brightest, etc..)
 
 
-%% Initialize System
+
+% Initialize System
 fig = figure('KeyPressFcn',@keyHandler,'CloseRequestFcn',@closeTracker);
 
 LoadExtractAndDisplayEverything(frame);
 
+%Draw the Gui
+drawgui;
+
 %Pause the UI and wait for the user to close
 uiwait(fig);
 
-
+% Exit
 disp('exiting')
 objPt='yo mamma';
 status='yo';
 
-
-
    
-    
     %% Load in a frame, Find Features, Display Image, Plot Points 
     function LoadExtractAndDisplayEverything(frame)
 
@@ -44,11 +56,12 @@ status='yo';
         [I,status]=loadfun(frame);
         currPts=findFeaturesFun(I);
         imagesc(I);
-        %Plot Current Pts
-        plotCurrentPts(currPts)
         
-        %Draw the Gui
-        drawgui;
+        %Plot Current Pts        
+        if dispFeat
+            plotCurrentPts(currPts)
+        end
+        
         
                 
     end
@@ -61,7 +74,28 @@ status='yo';
         uiresume(gcbf);
            delete(gcf);
        end
+       ReleaseFocus(gcbf);
        
+    end
+
+    %% Decrement Frame
+    function decrementFrame
+        if frame-1>=minFrame
+            frame=frame-1;
+            disp('Backward')
+        else
+            disp('Out of range');
+        end
+    end
+
+    %% Increment Frame
+    function incrementFrame
+        if frame+1<=maxFrame
+            frame=frame+1;
+            disp('Forward')
+        else
+            disp('Out of range');
+        end
     end
 
     %% KeyHandler
@@ -78,14 +112,20 @@ status='yo';
         end
         
         
-        
-        if strcmp(evnt.Key,'space') || strcmp(evnt.Key,'rightarrow')
-            disp('Forward')
-            frame=frame+1;
+        %Forward
+        if strcmp(evnt.Key,'space') || strcmp(evnt.Key,'rightarrow')            
+            incrementFrame;
+            
+        %Backward
         elseif strcmp(evnt.Key,'backspace') || strcmp(evnt.Key,'leftarrow')
-            frame=frame-1;
-            disp('Backward')
+            decrementFrame;
+        
+        elseif strcmp(evnt.Character,'h')
+            dispFeat=~dispFeat;
+            disp('Hide/Show Features');
         end
+        
+        
         
         disp(frame)
         
@@ -94,6 +134,34 @@ status='yo';
         
     end
 
+
+    %% Toggle Feature Record Callback
+    function RecordCallback(src,evnt)
+        record=logical(get(gcbo,'Value'));
+        ReleaseFocus(gcbf);
+    end
+
+    %% mutEx Button Callbacks
+    function mutExButtonCallback(src,evnt,feature)
+        %When a mutually exclusive toggle button is clicked, record the
+        %currently clicked button and then untoggle all the others.
+        
+        thisButton=gcbo;
+        set(thisButton,'Value',1);
+        
+        %Turn off all the other mutually excluded feature buttons
+        for k=1:length(mutEx)
+            if thisButton~=mutEx(k)
+                set(mutEx(k),'Value',0);
+            end
+        end
+        
+        
+        %Set the current Feature
+        currFeat=feature;
+        
+        ReleaseFocus(gcbf);
+    end
 
     %% GUI
     function drawgui
@@ -104,26 +172,52 @@ status='yo';
         gcf;
         
         %Done
-        p = uicontrol('Style','PushButton',...
+        doneButton = uicontrol('Style','PushButton',...
         'Units','Normalized',...
-        'Position',[leftPosOfButtons .01 .27 .08],...
+        'Position',[leftPosOfButtons .01 .27 .04],...
         'String','Done',...
         'CallBack',@closeTracker);
     
         %Occluded
-        uicontrol('Style','PushButton',...
+        mutEx(1)=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
-        'Position',[leftPosOfButtons .31 .27 .08],...
+        'Position',[leftPosOfButtons .31 .27 .07],...
         'String','Occluded',...
-        'CallBack','disp(''Clicked Occluded'')');
+        'CallBack',{@mutExButtonCallback,-1});
     
         %Brightest
-        uicontrol('Style','PushButton',...
+        mutEx(2)=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
-        'Position',[leftPosOfButtons .81 .27 .08],...
-        'String','Brightest',...
-        'CallBack','disp(''Clicked Brightest'')');
+        'Position',[leftPosOfButtons .73 .27 .07],...
+        'String','1st (Diamond)',...
+        'Value',1,... %This should be on by default
+        'CallBack',{@mutExButtonCallback,1});
+    
+    
+        %2nd Brightest
+        mutEx(3)=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .65 .27 .07],...
+        'String','2nd (Circle)',...
+        'CallBack',{@mutExButtonCallback,2});
+    
+        %3rd Brightest
+        mutEx(4)=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .57 .27 .07],...
+        'String','3rd (Square)',...
+        'CallBack',{@mutExButtonCallback,3});
 
+
+
+        %Overwriting
+        recordButton=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .92 .27 .07],...
+        'String','Record ON/OFF',...
+        'Value',1,...
+        'CallBack',@RecordCallback);
+    
     end
 
 

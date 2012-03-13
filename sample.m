@@ -17,6 +17,6 @@ loadFrame=getLoadFrameHandle(basefilename,extension,digits,imInfo,findNeuronsInR
 
 findFeatures=getFindFeatureCandidatesHandle(5,featureRadius);
 
-BrightObjectTracker(loadFrame,findFeatures)
+BrightObjectTracker(loadFrame,findFeatures,minRange,maxRange)
 
 
