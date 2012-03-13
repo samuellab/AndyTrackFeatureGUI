@@ -12,10 +12,11 @@ status=''; %Are we out of range?
 currPts=[]; %current Extracted features
 dispFeat=true; %display features?
 record=true; %record features
-currFeat=[]; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
+currFeat=1; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
 
     %A note about current features... the following table determines the
     %value of current feature:
+    % -2: Not yet analyzed
     % -1: Occluded
     % 0: Manually Specificed Value
     % 1: Brightest Feature
@@ -27,6 +28,15 @@ currFeat=[]; %current Feature (brightest, 2nd brightest, occluded, manual, etc..
     % .
 
 mutEx=[]; %array of mutually exclusive toggle button handles (one for occluded, one for brightest, etc..)
+
+
+% Feature Data
+frameIndx=minFrame:maxFrame; %index of frames
+featureType=-2.*ones(size(frameIndx)); %type of feature for each frame
+featureLoc=ones(length(frameIndx),2).*-1; %Location of the feature 
+                                          %each row corresponds a frame in
+                                          %IndxFrame and the first column
+                                          %is x, the second column is y
 
 
 
@@ -45,8 +55,24 @@ uiwait(fig);
 disp('exiting')
 objPt='yo mamma';
 status='yo';
+    
+    %% Display and Plot the current Image (& Draw Gui)
+    function RefreshDisplayAndPlot
+        gcf;  clf
+               
+        drawgui;
+        
+        %plot the image
+        imagesc(I);
+        
+        %Plot Current Pts        
+        if dispFeat
+            plotCurrentPts(currPts,currFeat)
+        end        
 
-   
+    end
+
+
     %% Load in a frame, Find Features, Display Image, Plot Points 
     function LoadExtractAndDisplayEverything(frame)
 
@@ -55,14 +81,9 @@ status='yo';
 
         [I,status]=loadfun(frame);
         currPts=findFeaturesFun(I);
-        imagesc(I);
         
-        %Plot Current Pts        
-        if dispFeat
-            plotCurrentPts(currPts)
-        end
-        
-        
+        RefreshDisplayAndPlot;
+     
                 
     end
 
@@ -98,6 +119,26 @@ status='yo';
         end
     end
 
+    %% Record Feature for this Frame
+    function recordFeature
+       if record
+            if currFeat ~=0 && currFeat >-2 %not manual & is valid
+                featureType(frame)=currFeat;
+                if currFeat~=0 %if not occluded
+                    featureLoc(:,framed)=currPts(:,currFeat);
+                else
+                    featureLoc(:,frame)=[-1,-1];
+                end
+                
+            else
+                %Manual
+                disp('This functionality not present yet...');
+            end
+       end
+       %Record is turned off so don't do anythning
+        
+    end
+
     %% KeyHandler
     function keyHandler(src,evnt)
         
@@ -130,8 +171,7 @@ status='yo';
         disp(frame)
         
         %Load & Display Everything
-        LoadExtractAndDisplayEverything(frame)
-        
+        LoadExtractAndDisplayEverything(frame)        
     end
 
 
@@ -161,6 +201,7 @@ status='yo';
         currFeat=feature;
         
         ReleaseFocus(gcbf);
+        RefreshDisplayAndPlot;
     end
 
     %% GUI
@@ -183,6 +224,7 @@ status='yo';
         'Units','Normalized',...
         'Position',[leftPosOfButtons .31 .27 .07],...
         'String','Occluded',...
+        'Value',currFeat==-1,... 
         'CallBack',{@mutExButtonCallback,-1});
     
         %Brightest
@@ -190,7 +232,7 @@ status='yo';
         'Units','Normalized',...
         'Position',[leftPosOfButtons .73 .27 .07],...
         'String','1st (Diamond)',...
-        'Value',1,... %This should be on by default
+        'Value',currFeat==1,... 
         'CallBack',{@mutExButtonCallback,1});
     
     
@@ -199,6 +241,7 @@ status='yo';
         'Units','Normalized',...
         'Position',[leftPosOfButtons .65 .27 .07],...
         'String','2nd (Circle)',...
+        'Value',currFeat==2,... 
         'CallBack',{@mutExButtonCallback,2});
     
         %3rd Brightest
@@ -206,6 +249,7 @@ status='yo';
         'Units','Normalized',...
         'Position',[leftPosOfButtons .57 .27 .07],...
         'String','3rd (Square)',...
+        'Value',currFeat==3,... 
         'CallBack',{@mutExButtonCallback,3});
 
 
@@ -215,37 +259,44 @@ status='yo';
         'Units','Normalized',...
         'Position',[leftPosOfButtons .92 .27 .07],...
         'String','Record ON/OFF',...
-        'Value',1,...
+        'Value',record,...
         'CallBack',@RecordCallback);
     
     end
 
 
     %% Plot Current Points
-        function plotCurrentPts(currPts)
+        function plotCurrentPts(currPts,currFeat)
         
+            shapeList={'d','o','s','+','*','^','<','>'};
+            defaultColor='w';
+            defaultWidth=1;
+            
+            specialColor='r';
+            specialWidth=2;
+            
+
             %Plot the brightest points
             gcf;
             hold on; 
-            plot(currPts(1,1), currPts(1,2),'dr','MarkerSize',8,'LineWidth',2 )
             
-            if size(currPts,1)>1
-                plot(currPts(2,1), currPts(2,2),'ow','MarkerSize',8,'LineWidth',1.5 )
+            for k=1:size(currPts,1)
+                if k==currFeat
+                    %use special values
+                    c=specialColor;
+                    w=specialWidth;
+                else
+                    %use default values
+                    c=defaultColor;
+                    w=defaultWidth;
+                    
+                end
+                
+                plot(currPts(k,1), currPts(k,2),shapeList{k},...
+                    'MarkerEdgeColor',c,'MarkerSize',8,'LineWidth',w)                
+                
             end
             
-            
-            if size(currPts,1)>2
-                plot(currPts(3,1), currPts(3,2),'sw','MarkerSize',8,'LineWidth',1)
-            end
-            
-            
-            if size(currPts,1)>3
-                plot(currPts(4,1), currPts(4,2),'+w','MarkerSize',8,'LineWidth',1)
-            end
-            
-            if size(currPts,1)>4
-                plot(currPts(5,1), currPts(5,2),'*w','MarkerSize',8,'LineWidth',1)
-            end
 
     end
 
