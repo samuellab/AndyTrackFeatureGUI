@@ -53,7 +53,6 @@ uiwait(fig);
 
 % Exit
 disp('exiting')
-objPt='yo mamma';
 status='yo';
     
     %% Display and Plot the current Image (& Draw Gui)
@@ -99,11 +98,25 @@ status='yo';
        
     end
 
+    %% CLick Increment / Decrement the Frame
+    function clickIncrement(src,evnt)
+        ReleaseFocus(gcbf);
+           incrementFrame;
+    end
+    function clickDecrement(src,evnt)
+    	ReleaseFocus(gcbf);
+        decrementFrame;
+    end
+
     %% Decrement Frame
     function decrementFrame
         if frame-1>=minFrame
             frame=frame-1;
             disp('Backward')
+            
+        %Load & Display Everything
+        LoadExtractAndDisplayEverything(frame)     
+            
         else
             disp('Out of range');
         end
@@ -114,6 +127,10 @@ status='yo';
         if frame+1<=maxFrame
             frame=frame+1;
             disp('Forward')
+        
+        %Load & Display Everything
+        LoadExtractAndDisplayEverything(frame)       
+        
         else
             disp('Out of range');
         end
@@ -124,7 +141,7 @@ status='yo';
        if record
             if currFeat ~=0 && currFeat >-2 %not manual & is valid
                 featureType(frame)=currFeat;
-                if currFeat~=0 %if not occluded
+                if currFeat>0 %if not occluded
                     featureLoc(frame,:)=currPts(currFeat,:);
                 else
                     featureLoc(frame,:)=[-1,-1];
@@ -165,15 +182,12 @@ status='yo';
         
         elseif strcmp(evnt.Character,'h')
             dispFeat=~dispFeat;
+            RefreshDisplayAndPlot;
             disp('Hide/Show Features');
         end
-        
-        
-        
-        disp(frame)
-        
-        %Load & Display Everything
-        LoadExtractAndDisplayEverything(frame)        
+         
+        %Ignore the key stroke
+ 
     end
 
 
@@ -250,7 +264,7 @@ status='yo';
         %Occluded
         mutEx(1)=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
-        'Position',[leftPosOfButtons .31 .27 .07],...
+        'Position',[leftPosOfButtons .21 .27 .07],...
         'String','Occluded',...
         'Value',currFeat==-1,... 
         'CallBack',{@mutExButtonCallback,-1});
@@ -293,7 +307,21 @@ status='yo';
             'Units','Normalized',...
             'Position',[leftPosOfButtons .83 .27 .07],...
             'String',getStatusText);    
-    
+        
+        
+        %Left and Right Buttons
+        
+         uicontrol('Style','PushButton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .29 .13 .1],...
+        'String','<-',...
+        'CallBack',@clickDecrement);
+         
+        uicontrol('Style','PushButton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons+.13 .29 .13 .1],...
+        'String','->',...
+        'CallBack',@clickIncrement);
     
     
     end
