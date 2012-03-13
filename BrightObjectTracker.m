@@ -28,7 +28,7 @@ currFeat=1; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
     % .
 
 mutEx=[]; %array of mutually exclusive toggle button handles (one for occluded, one for brightest, etc..)
-
+statusTextHandle=[]; %Handle to text object
 
 % Feature Data
 frameIndx=minFrame:maxFrame; %index of frames
@@ -125,9 +125,9 @@ status='yo';
             if currFeat ~=0 && currFeat >-2 %not manual & is valid
                 featureType(frame)=currFeat;
                 if currFeat~=0 %if not occluded
-                    featureLoc(:,framed)=currPts(:,currFeat);
+                    featureLoc(frame,:)=currPts(currFeat,:);
                 else
-                    featureLoc(:,frame)=[-1,-1];
+                    featureLoc(frame,:)=[-1,-1];
                 end
                 
             else
@@ -154,11 +154,13 @@ status='yo';
         
         
         %Forward
-        if strcmp(evnt.Key,'space') || strcmp(evnt.Key,'rightarrow')            
+        if strcmp(evnt.Key,'space') || strcmp(evnt.Key,'rightarrow')
+            recordFeature;
             incrementFrame;
             
         %Backward
         elseif strcmp(evnt.Key,'backspace') || strcmp(evnt.Key,'leftarrow')
+            recordFeature;
             decrementFrame;
         
         elseif strcmp(evnt.Character,'h')
@@ -202,6 +204,32 @@ status='yo';
         
         ReleaseFocus(gcbf);
         RefreshDisplayAndPlot;
+    end
+
+    %% Get Status Text To Display
+    function text=getStatusText
+
+        if record
+            
+            if currFeat==-1
+                text=['RECORDING Feature: Occluded']
+            elseif currFeat==0
+                    text=['Manual entry not yet supported'];
+            elseif currFeat >0 
+                text=['RECORDING Feature: ' num2str(currFeat) ...
+                    ' Loc: (' num2str(currPts(currFeat,:)) ')'  ] ;
+            else
+                text=['This feature is not supported'];
+            end
+
+        else
+            text=['Viewing Feature: ' num2str(featureType(frame)) ...
+                ' Loc: (' num2str(featureLoc(frame,:)) ')'  ] ;
+
+        end
+        
+        
+        
     end
 
     %% GUI
@@ -252,8 +280,6 @@ status='yo';
         'Value',currFeat==3,... 
         'CallBack',{@mutExButtonCallback,3});
 
-
-
         %Overwriting
         recordButton=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
@@ -261,6 +287,14 @@ status='yo';
         'String','Record ON/OFF',...
         'Value',record,...
         'CallBack',@RecordCallback);
+    
+        %STatus Text
+        statusTextHandle=uicontrol('Style','text',...
+            'Units','Normalized',...
+            'Position',[leftPosOfButtons .83 .27 .07],...
+            'String',getStatusText);    
+    
+    
     
     end
 
