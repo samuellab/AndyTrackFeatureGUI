@@ -1,5 +1,9 @@
 function h=getLoadFrameHandle(basefilename,extension,filenameDigits,imInfo,findNeuronsInRed,FirstImNum,LastImNum)
+%Returns a function handle to a function that loads in a frame. This is
+%currently qritten for dual-view images. Simply write your own loadFrame
+%function here and you should be good to go. 
 h=@loadFrame;
+
 
     function [Iout, ret]=loadFrame(num)
         %ret is zero (false) when things worked
