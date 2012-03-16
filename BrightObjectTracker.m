@@ -10,6 +10,7 @@ frame=minFrame; %Current frame
 I=[]; %Current Image
 status=''; %Are we out of range?
 currPts=[]; %current Extracted features
+manPt=[]; %current manually entered pt.
 dispFeat=true; %display features?
 record=true; %record features
 currFeat=1; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
@@ -52,8 +53,9 @@ drawgui;
 uiwait(fig);
 
 % Exit
-disp('exiting')
-status='yo';
+
+objPt=featureLoc;
+status=1;
     
     %% Display and Plot the current Image (& Draw Gui)
     function RefreshDisplayAndPlot
@@ -64,8 +66,14 @@ status='yo';
         %plot the image
         imagesc(I);
         
-        %Plot Current Pts        
-        if dispFeat
+    
+        
+        
+        if currFeat == 0 %if we are in manual entry
+           clear('manPt');
+           manPt=ginput(1); %have the user select a point
+           plotCurrentPts(manPt,currFeat); % display that point
+        elseif dispFeat %Plot Current Pts  
             plotCurrentPts(currPts,currFeat)
         end        
 
@@ -294,6 +302,31 @@ status='yo';
         'Value',currFeat==3,... 
         'CallBack',{@mutExButtonCallback,3});
 
+        %4th Brightest
+        mutEx(5)=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .49 .27 .07],...
+        'String','4th (+)',...
+        'Value',currFeat==3,... 
+        'CallBack',{@mutExButtonCallback,4});   
+    
+         %5th Brightest
+         mutEx(6)=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .41 .27 .07],...
+        'String','5th (*)',...
+        'Value',currFeat==4,... 
+        'CallBack',{@mutExButtonCallback,5});    
+       
+        %Manual
+        mutEx(7)=uicontrol('Style','togglebutton',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .13 .27 .07],...
+        'String','Manual Entry',...
+        'Value',currFeat==0,... 
+        'CallBack',{@mutExButtonCallback,0});    
+    
+    
         %Overwriting
         recordButton=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
@@ -302,11 +335,15 @@ status='yo';
         'Value',record,...
         'CallBack',@RecordCallback);
     
+    
+    
+    
         %STatus Text
         statusTextHandle=uicontrol('Style','text',...
             'Units','Normalized',...
             'Position',[leftPosOfButtons .83 .27 .07],...
             'String',getStatusText);    
+        
         
         
         %Left and Right Buttons
@@ -338,26 +375,35 @@ status='yo';
             specialWidth=2;
             
 
-            %Plot the brightest points
             gcf;
             hold on; 
             
-            for k=1:size(currPts,1)
-                if k==currFeat
-                    %use special values
-                    c=specialColor;
-                    w=specialWidth;
-                else
-                    %use default values
-                    c=defaultColor;
-                    w=defaultWidth;
-                    
+            
+            if currFeat ~=0 %If we aren't doing manual data enter
+                
+                %Plot the brightest points
+                for k=1:size(currPts,1)
+                    if k==currFeat
+                        %use special values
+                        c=specialColor;
+                        w=specialWidth;
+                    else
+                        %use default values
+                        c=defaultColor;
+                        w=defaultWidth;
+
+                    end
+
+                    plot(currPts(k,1), currPts(k,2),shapeList{k},...
+                        'MarkerEdgeColor',c,'MarkerSize',8,'LineWidth',w)                
+
                 end
+            else
                 
-                plot(currPts(k,1), currPts(k,2),shapeList{k},...
-                    'MarkerEdgeColor',c,'MarkerSize',8,'LineWidth',w)                
-                
+                plot(currPts(1), currPts(2),'o',...
+                        'MarkerEdgeColor',specialColor,'MarkerSize',8,'LineWidth',specialWidth)
             end
+            
             
 
     end
