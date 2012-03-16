@@ -1,4 +1,4 @@
-function [objPt, status] = BrightObjectTracker(loadfun,findFeaturesFun,minFrame,maxFrame)
+function [objPt, frameIndx] = BrightObjectTracker(loadfun,findFeaturesFun,minFrame,maxFrame)
 % Load in a frame at a time and allows the user to navigate between frames.  
 %
 % Andrew Leifer
