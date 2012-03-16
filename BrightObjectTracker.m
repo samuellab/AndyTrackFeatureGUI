@@ -236,7 +236,8 @@ status=1;
             if currFeat==-1
                 text=['RECORDING Feature: Occluded']
             elseif currFeat==0
-                    text=['Manual entry not yet supported'];
+                text=['RECORDING Feature: ' num2str(currFeat) ...
+                    ' Loc: (' num2str(manPt) ')'  ] ;
             elseif currFeat >0 
                 text=['RECORDING Feature: ' num2str(currFeat) ...
                     ' Loc: (' num2str(currPts(currFeat,:)) ')'  ] ;
@@ -379,7 +380,7 @@ status=1;
             hold on; 
             
             
-            if currFeat ~=0 %If we aren't doing manual data enter
+            if currFeat ~=0 %If we aren't doing manual data entry
                 
                 %Plot the brightest points
                 for k=1:size(currPts,1)
