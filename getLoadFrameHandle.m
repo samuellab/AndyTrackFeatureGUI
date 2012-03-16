@@ -1,9 +1,10 @@
 function h=getLoadFrameHandle(basefilename,extension,filenameDigits,imInfo,findNeuronsInRed,FirstImNum,LastImNum)
 h=@loadFrame;
 
-    function ret=loadFrame(num)
+    function [Iout, ret]=loadFrame(num)
         %ret is zero (false) when things worked
         %ret is one (true) when out of range
+        currPts='';
 
         ret=false;
                 
@@ -25,19 +26,14 @@ h=@loadFrame;
                 splitI=Ig;
             end
             
+            Iout=splitI;
 
-            %Clear the image and plot the current one
-            clf;imagesc(splitI)
-            
-            %Find the n brightest regions    
-            [x, y, blurred]=findNBrightest(splitI,4,5);
-            
-            %Plot the brightest points
-            hold on; plot(x,y,'ow')
-            
             ret=false; %We are in range
         end
         
     end
+
+    
+
 
 end
