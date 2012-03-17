@@ -2,7 +2,6 @@
 basefilename='F:\DualMag\20120126\cex1_3_3\cex1_3_3t';
 digits=4;
 extension='.tif';
-featureRadius=4;
 
 minRange=1;
 maxRange=2000;
@@ -15,7 +14,7 @@ imInfo=output.imInfo;
 
 loadFrame=getLoadFrameHandle(basefilename,extension,digits,imInfo,findNeuronsInRed,minRange,maxRange);
 
-findFeatures=getFindFeatureCandidatesHandle(5,featureRadius);
+findFeatures=getFindFeatureCandidatesHandle(5);
 
 [point,~]=BrightObjectTracker(loadFrame,findFeatures,minRange,maxRange);
 

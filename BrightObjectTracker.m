@@ -13,6 +13,7 @@ currPts=[]; %current Extracted features
 manPt=[]; %current manually entered pt.
 dispFeat=true; %display features?
 record=true; %record features
+featRadius=15;
 currFeat=1; %current Feature (brightest, 2nd brightest, occluded, manual, etc..)
 
     %A note about current features... the following table determines the
@@ -87,7 +88,7 @@ status=1;
         set(gcf,'Name',['Frame: ' num2str(frame)]);
 
         [I,status]=loadfun(frame);
-        currPts=findFeaturesFun(I);
+        currPts=findFeaturesFun(I,featRadius);
         
         RefreshDisplayAndPlot;
      
@@ -211,12 +212,12 @@ status=1;
         %currently clicked button and then untoggle all the others.
         
         thisButton=gcbo;
-        set(thisButton,'Value',1);
+        set(thisButton,'Value',1); %Depressed
         
         %Turn off all the other mutually excluded feature buttons
         for k=1:length(mutEx)
             if thisButton~=mutEx(k)
-                set(mutEx(k),'Value',0);
+                set(mutEx(k),'Value',0); %Not Depressed
             end
         end
         
@@ -251,7 +252,13 @@ status=1;
 
         end
         
-        
+    end
+
+    %Set the Feature Radius
+    function setFeatRadius(svc,evnt)
+        featRadius=round(get(gcbo,'Value'));
+        set(findobj('Tag','featRadiusText'),'String',num2str(featRadius));
+        LoadExtractAndDisplayEverything(frame)  ;
         
     end
 
@@ -308,7 +315,7 @@ status=1;
         'Units','Normalized',...
         'Position',[leftPosOfButtons .49 .27 .07],...
         'String','4th (+)',...
-        'Value',currFeat==3,... 
+        'Value',currFeat==4,... 
         'CallBack',{@mutExButtonCallback,4});   
     
          %5th Brightest
@@ -316,7 +323,7 @@ status=1;
         'Units','Normalized',...
         'Position',[leftPosOfButtons .41 .27 .07],...
         'String','5th (*)',...
-        'Value',currFeat==4,... 
+        'Value',currFeat==5,... 
         'CallBack',{@mutExButtonCallback,5});    
        
         %Manual
@@ -360,6 +367,26 @@ status=1;
         'Position',[leftPosOfButtons+.13 .29 .13 .1],...
         'String','->',...
         'CallBack',@clickIncrement);
+    
+    
+        %Feature Size Control
+        uicontrol('Style','slider',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons .08 .23 .03],...
+        'String','FeatureSize',...
+        'Min',1, 'Max',50,...
+        'Value',featRadius,... 
+        'SliderStep',[.1 1/50],...
+        'CallBack',@setFeatRadius);    
+        
+        %Feature Size Control Text!
+        uicontrol('Style','text',...
+        'Units','Normalized',...
+        'Position',[leftPosOfButtons+.22, .08,  .06, .03],...
+        'String',num2Str(featRadius),...
+        'Tag','featRadiusText');    
+        
+    
     
     
     end
