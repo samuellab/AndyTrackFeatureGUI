@@ -109,10 +109,12 @@ status=1;
 
     %% CLick Increment / Decrement the Frame
     function clickIncrement(src,evnt)
+        recordFeature;
         ReleaseFocus(gcbf);
            incrementFrame;
     end
     function clickDecrement(src,evnt)
+        recordFeature;
     	ReleaseFocus(gcbf);
         decrementFrame;
     end
@@ -148,8 +150,8 @@ status=1;
     %% Record Feature for this Frame
     function recordFeature
        if record
+           featureType(frame)=currFeat;
             if currFeat ~=0 && currFeat >-2 %not manual & is valid
-                featureType(frame)=currFeat;
                 if currFeat>0 %if not occluded
                     featureLoc(frame,:)=currPts(currFeat,:);
                 else
@@ -158,7 +160,7 @@ status=1;
                 
             else
                 %Manual
-                disp('This functionality not present yet...');
+                featureLoc(frame,:)=manPt;
             end
        end
        %Record is turned off so don't do anythning
