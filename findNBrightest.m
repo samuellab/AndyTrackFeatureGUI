@@ -20,7 +20,7 @@ for k=1:N
     
     
     %Black out a region aroudn the brightest point
-    I=blackOutCircle(x(k),y(k),I,r+1);
+    I=blackOutCircle(x(k),y(k),I,r+2);
 end
 
 

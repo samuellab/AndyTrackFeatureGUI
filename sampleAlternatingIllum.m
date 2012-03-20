@@ -1,12 +1,12 @@
 %Get INformation
-basefilename='F:\DualMag\20120314\lim4_1_2\lim4_1_2t';
+basefilename='F:\DualMag\20120220\lgc55_2_4\lgc55gc3_2_4t';
 digits=4;
 extension='.tif';
 channelPrefix='c'
 greenChIs1=true;
 
-minRange=1;
-maxRange=2000;
+minRange=670;
+maxRange=700;
 
 findNeuronsInRed=true;
 
