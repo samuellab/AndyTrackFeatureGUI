@@ -1,11 +1,13 @@
 
-function [x, y, blurred]= findBrightest(I,radius,N)
+function [x, y, blurred]= findBrightest(I,radiusExclusion,radiusSmooth,N)
 %Find the N brightest regions in an image
+%radiusExclusion specifices the size of the region to exclude after a
+%bright point has been found. 
+%radiusSmooth specifices the radius for smoothing purpuoses.
 
 Iorig=I;    
     
-r=radius;
-h = fspecial('gaussian',2.*[r r], r^.5);
+h = fspecial('gaussian',2.*[radiusSmooth radiusSmooth], radiusSmooth^.5);
 
 for k=1:N
     blurred=imfilter(I,h,'replicate'); 
@@ -20,7 +22,7 @@ for k=1:N
     
     
     %Black out a region aroudn the brightest point
-    I=blackOutCircle(x(k),y(k),I,r+2);
+    I=blackOutCircle(x(k),y(k),I,radiusExclusion);
 end
 
 
