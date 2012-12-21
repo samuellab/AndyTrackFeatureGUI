@@ -44,6 +44,7 @@ brightVsPosHandle=[]; %Array of handles to the two mutually exclusive
     POSITION=2;
     
 featReccomendMode=BRIGHTNESS; %This is the feature location recommendation mode
+                              %Brightness is the default mode.
 statusTextHandle=[]; %Handle to text object
 
 % Feature Data
@@ -69,7 +70,7 @@ uiwait(fig);
 
 % Exit
 
-objPt=featureLoc;
+objPt=featureLoc; %Copy featureLoc to function output
 status=1;
     
     %% Display and Plot the current Image (& Draw Gui)
@@ -101,12 +102,44 @@ status=1;
         %Set the desired frame
         set(gcf,'Name',['Frame: ' num2str(frame)]);
 
-        [I,status]=loadfun(frame);
-        currPts=findFeaturesFun(I,featRadius);
+        [I,status]=loadfun(frame); %Load in the frames
+        currPts=findFeaturesFun(I,featRadius); %Find the first N candidate features
         
-        RefreshDisplayAndPlot;
-     
+        %If we are in position mode, we should select the current feature 
+        % by finding the one closes to the previous frame. 
+        if featReccomendMode==POSITION
+            currFeat=findFeatClosestToPrevFrame(currPts,frame,featureLoc);
+        end
+        
+        RefreshDisplayAndPlot;     
+    end
+
+    function closestFeat=findFeatClosestToPrevFrame(currPts,frame,featureLoc);
+        
+        %If the last frame had an occluded point or is out of bounds,
+        % keep the currently recommended feature brightness level 
+        %(e.g. occluded, or diamond or whatever)
+        
+        closestFeat=currFeat; %Keep current recommendation
+
+       %If  frame-1 exists 
+       if  (frame-1>0) 
+                     prevFrameLoc=featureLoc(frame-1,:); %Get Location from Prev Frame
+            %If the frame isn't empty and isn't occluded
+            if ~isempty(featureLoc(frame-1,:))&& ~all( prevFrameLoc<1)
+                %find the feature whose location is nearest to the one from the previous frame.
+
+                %Calculate cartesion distance between each currPt and the
+                %previous frame location
+                distForEachFeat=sqrt(sum((currPts-repMat(prevFrameLoc,size(currPts,1),1)).^2,2)); 
                 
+                %Find min
+                [~,minDistFeat]=min(distForEachFeat); %Find the index of the minimum(s)
+                closestFeat=minDistFeat(1); %overwrite the closest feawture
+            end
+        end
+
+        
     end
 
 
