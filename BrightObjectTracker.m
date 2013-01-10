@@ -145,7 +145,7 @@ status=1;
         set(gcf,'Name',['Frame: ' num2str(frame)]);
 
         [I,status]=loadfun(frame); %Load in the frames
-        currPts=findFeaturesFun(I,featRadius); %Find the first N candidate features
+        currPts=findFeaturesFun(I,featRadius,frame); %Find the first N candidate features
         
         %If we are in position mode, we should select the current feature 
         % by finding the one closes to the previous frame. 
@@ -573,7 +573,7 @@ status=1;
 
                 end
             else
-                
+                  
                 plot(currPts(1), currPts(2),'o',...
                         'MarkerEdgeColor',specialColor,'MarkerSize',8,'LineWidth',specialWidth)
             end
