@@ -241,8 +241,8 @@ status=1;
        if record
            featureType(frame)=currFeat;
             if currFeat ~=0 && currFeat >-2 %not manual & is valid
-                if currFeat>0 %if not occluded
-                    featureLoc(frame,:)=currPts(currFeat,:);
+                if currFeat>0 %if not occluded                    
+                     featureLoc(frame,:)=currPts(currFeat,:);
                 else
                     featureLoc(frame,:)=[-1,-1];
                 end
@@ -435,12 +435,14 @@ status=1;
     
     
         %2nd Brightest
+        
         mutEx(3)=uicontrol('Style','togglebutton',...
         'Units','Normalized',...
         'Position',[leftPosOfButtons .63 btnWidth .07],...
         'String','2nd (Circle)',...
         'Value',currFeat==2,... 
         'CallBack',{@mutExButtonCallback,2});
+        
     
         %3rd Brightest
         mutEx(4)=uicontrol('Style','togglebutton',...
@@ -467,8 +469,14 @@ status=1;
         'CallBack',{@mutExButtonCallback,5});    
 
     
-    
-    
+        %If the feature finding function gives us less than 5 potential features to choose from,
+        %then we should disable some of the buttons
+         numFeats=size(currPts,1); %Number of Features
+         numButtons=5;
+         if numFeats <numButtons
+             %Turn off the unnecessary buttons
+            set(mutEx( (numFeats+1:numButtons) +1 ),'Enable','off')
+         end
     
     
         %STatus Text
