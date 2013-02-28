@@ -1,8 +1,8 @@
 function [objPt, frameIndx] = BrightObjectTracker(loadfun,findFeaturesFun,minFrame,maxFrame,optAltChLoc)
 % Load in a frame at a time and allows the user to navigate between frames.  
 %
-%
-%
+% IMPORTANT: See sample.m for development
+% 
 % This is the main code for tracking objects. It includes the code to
 % create the GUI. 
 %
